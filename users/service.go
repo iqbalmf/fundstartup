@@ -3,12 +3,14 @@ package users
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
 )
 
 type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	LoginUser(input LoginInput) (User, error)
-	IsEmailAvailable(Input CheckEmailInput) (bool, error)
+	IsEmailAvailable(input CheckEmailInput) (bool, error)
+	SaveAvatar(ID int, fileLocation string) (User, error)
 }
 
 type service struct {
@@ -53,7 +55,6 @@ func (s *service) LoginUser(input LoginInput) (User, error) {
 	}
 	return user, nil
 }
-
 func (s *service) IsEmailAvailable(input CheckEmailInput) (bool, error) {
 	email := input.Email
 	user, err := s.repository.FindByEmail(email)
@@ -64,4 +65,19 @@ func (s *service) IsEmailAvailable(input CheckEmailInput) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+func (s *service) SaveAvatar(ID int, fileLocation string) (User, error) {
+	//getting user by ID
+	//update attribute avatar file name
+	//save update avatar file name
+	user, err := s.repository.FindById(strconv.Itoa(ID))
+	if err != nil {
+		return user, err
+	}
+	user.AvatarFileName = fileLocation
+	updatedUser, err := s.repository.UpdateUser(user)
+	if err != nil {
+		return user, err
+	}
+	return updatedUser, nil
 }
