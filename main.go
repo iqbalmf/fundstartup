@@ -1,6 +1,7 @@
 package main
 
 import (
+	"funding-app/auth"
 	"funding-app/handler"
 	"funding-app/users"
 	"log"
@@ -18,7 +19,9 @@ func main() {
 	}
 	userRepository := users.NewRepository(db)
 	userService := users.NewService(userRepository)
-	userHandler := handler.NewUserHandler(userService)
+	authService := auth.NewService()
+
+	userHandler := handler.NewUserHandler(userService, authService)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
