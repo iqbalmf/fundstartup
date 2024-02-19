@@ -22,6 +22,8 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	userRepository := users.NewRepository(db)
+	//campaignRepository := campaign.NewRepository(db)
+
 	userService := users.NewService(userRepository)
 	authService := auth.NewService()
 
