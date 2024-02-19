@@ -2,6 +2,7 @@ package main
 
 import (
 	"funding-app/auth"
+	"funding-app/campaign"
 	"funding-app/handler"
 	"funding-app/helper"
 	"funding-app/users"
@@ -22,12 +23,14 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	userRepository := users.NewRepository(db)
-	//campaignRepository := campaign.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
 
 	userService := users.NewService(userRepository)
 	authService := auth.NewService()
+	campaignService := campaign.NewService(campaignRepository)
 
 	userHandler := handler.NewUserHandler(userService, authService)
+	campaignHandler := handler.NewUserCampaign(campaignService)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
@@ -35,6 +38,7 @@ func main() {
 	api.POST("/sessions", userHandler.LoginUser)
 	api.POST("/email_checkers", userHandler.CheckEMailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	_ = router.Run()
 }
 
