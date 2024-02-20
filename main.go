@@ -33,12 +33,14 @@ func main() {
 	campaignHandler := handler.NewUserCampaign(campaignService)
 
 	router := gin.Default()
+	router.Static("/avatar_images", "./images")
 	api := router.Group("/api/v1")
 	api.POST("/users", userHandler.RegisterUser)
 	api.POST("/sessions", userHandler.LoginUser)
 	api.POST("/email_checkers", userHandler.CheckEMailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
+	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 	_ = router.Run()
 }
 
