@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"funding-app/campaign"
 	"funding-app/helper"
 	"funding-app/users"
@@ -119,4 +120,51 @@ func (r *campaignHandler) UpdateCampaign(c *gin.Context) {
 	}
 	response := helper.APIResponse("Success to Update campaign", http.StatusOK, "success", campaign.FormatCampaign(updateCampaign))
 	c.JSON(http.StatusOK, response)
+}
+
+// Upload Image Campaign
+// handler
+// get input change to struct input
+// save image to folder
+// service
+// repository :
+// save data image to table campaign_images
+// change is_primary true to false
+func (r *campaignHandler) UploadImage(c *gin.Context) {
+	var input campaign.CreateCampaignImageInput
+	err := c.ShouldBind(&input)
+	if err != nil {
+		response := helper.APIResponse(err.Error(), http.StatusUnprocessableEntity, "error", nil)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	currentUser := c.MustGet("currentUser").(users.User)
+	input.User = currentUser
+	userId := currentUser.ID
+	file, err := c.FormFile("file")
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse(err.Error(), http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	path := fmt.Sprintf("campaign_images/%d-%s", userId, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse(err.Error(), http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	_, err = r.service.SaveCampaignImages(input, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse(err.Error(), http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	data := gin.H{"is_uploaded": true}
+	response := helper.APIResponse("Image success uploaded", http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+	return
 }
