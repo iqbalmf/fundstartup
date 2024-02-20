@@ -5,6 +5,7 @@ import (
 	"funding-app/campaign"
 	"funding-app/handler"
 	"funding-app/helper"
+	"funding-app/transaction"
 	"funding-app/users"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
@@ -24,13 +25,16 @@ func main() {
 	}
 	userRepository := users.NewRepository(db)
 	campaignRepository := campaign.NewRepository(db)
+	transactionRepository := transaction.NewRepository(db)
 
 	userService := users.NewService(userRepository)
 	authService := auth.NewService()
 	campaignService := campaign.NewService(campaignRepository)
+	transactionService := transaction.NewService(transactionRepository, campaignRepository)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewUserCampaign(campaignService)
+	transactionHandler := handler.NewTransaction(transactionService)
 
 	router := gin.Default()
 	router.Static("/avatar_images", "./images")
@@ -44,6 +48,7 @@ func main() {
 	api.POST("/create_campaign", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
 	api.PUT("/update_campaign/:id", authMiddleware(authService, userService), campaignHandler.UpdateCampaign)
 	api.POST("/campaign-images", authMiddleware(authService, userService), campaignHandler.UploadImage)
+	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetTransactionCampaign)
 	_ = router.Run()
 }
 
