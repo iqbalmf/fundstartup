@@ -58,3 +58,30 @@ func (t *transactionHandler) GetTransactionUser(c *gin.Context) {
 	response := helper.APIResponse("Transaction User's detail", http.StatusOK, "success", transaction.FormatTransactions(tr))
 	c.JSON(http.StatusOK, response)
 }
+
+// MIDTRANS Integrations
+// input from user
+// handler get input and pass to input struct
+// service to create transaction, call system midtrans
+// repository to create new transaction
+func (t *transactionHandler) CreateTransaction(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(users.User)
+	var input transaction.CreateTransactionInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		error := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": error}
+		response := helper.APIResponse("Failed to create Transaction", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	input.User = currentUser
+	newTransaction, err := t.service.SaveTransaction(input)
+	if err != nil {
+		response := helper.APIResponse("Failed to create Transaction", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	response := helper.APIResponse("Success to create transaction", http.StatusOK, "error", newTransaction)
+	c.JSON(http.StatusOK, response)
+}
