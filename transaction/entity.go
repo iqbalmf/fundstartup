@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"funding-app/campaign"
 	"funding-app/users"
 	"time"
 )
@@ -13,6 +14,7 @@ type Transaction struct {
 	Status     string
 	Code       string
 	User       users.User
+	Campaign   campaign.Campaign
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
