@@ -6,6 +6,7 @@ type Repository interface {
 	GetTransactionByCampaignID(campaignID int) ([]Transaction, error)
 	GetTransactionByUserID(userID int) ([]Transaction, error)
 	SaveTransaction(transaction Transaction) (Transaction, error)
+	UpdateTransaction(transaction Transaction) (Transaction, error)
 }
 type repository struct {
 	db *gorm.DB
@@ -33,6 +34,14 @@ func (r *repository) GetTransactionByUserID(userID int) ([]Transaction, error) {
 
 func (r *repository) SaveTransaction(transaction Transaction) (Transaction, error) {
 	err := r.db.Create(&transaction).Error
+	if err != nil {
+		return transaction, err
+	}
+	return transaction, nil
+}
+
+func (r *repository) UpdateTransaction(transaction Transaction) (Transaction, error) {
+	err := r.db.Save(&transaction).Error
 	if err != nil {
 		return transaction, err
 	}

@@ -3,11 +3,13 @@ package transaction
 import (
 	"errors"
 	"funding-app/campaign"
+	"funding-app/payment"
 )
 
 type service struct {
 	repository         Repository
 	campaignRepository campaign.Repository
+	paymentService     payment.Service
 }
 type Service interface {
 	GetTransactionByCampaignID(input GetTransactionCampaignInput) ([]Transaction, error)
@@ -15,8 +17,8 @@ type Service interface {
 	SaveTransaction(input CreateTransactionInput) (Transaction, error)
 }
 
-func NewService(repository Repository, campaignRepo campaign.Repository) *service {
-	return &service{repository: repository, campaignRepository: campaignRepo}
+func NewService(repository Repository, campaignRepo campaign.Repository, payment payment.Service) *service {
+	return &service{repository: repository, campaignRepository: campaignRepo, paymentService: payment}
 }
 
 func (s *service) GetTransactionByCampaignID(input GetTransactionCampaignInput) ([]Transaction, error) {
@@ -53,6 +55,19 @@ func (s *service) SaveTransaction(input CreateTransactionInput) (Transaction, er
 	transaction.Code = ""
 
 	newTransaction, err := s.repository.SaveTransaction(transaction)
+	if err != nil {
+		return newTransaction, err
+	}
+	paymentTransaction := payment.Transaction{
+		ID:     newTransaction.ID,
+		Amount: newTransaction.Amount,
+	}
+	paymentURL, err := s.paymentService.GetPaymentURL(paymentTransaction, input.User)
+	if err != nil {
+		return newTransaction, err
+	}
+	newTransaction.PaymentURL = paymentURL
+	newTransaction, err = s.repository.UpdateTransaction(newTransaction)
 	if err != nil {
 		return newTransaction, err
 	}

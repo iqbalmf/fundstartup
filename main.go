@@ -5,6 +5,7 @@ import (
 	"funding-app/campaign"
 	"funding-app/handler"
 	"funding-app/helper"
+	"funding-app/payment"
 	"funding-app/transaction"
 	"funding-app/users"
 	"github.com/golang-jwt/jwt/v5"
@@ -30,7 +31,8 @@ func main() {
 	userService := users.NewService(userRepository)
 	authService := auth.NewService()
 	campaignService := campaign.NewService(campaignRepository)
-	transactionService := transaction.NewService(transactionRepository, campaignRepository)
+	paymentService := payment.NewService()
+	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewUserCampaign(campaignService)
@@ -51,7 +53,7 @@ func main() {
 	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetTransactionCampaign)
 	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetTransactionUser)
 	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
-	_ = router.Run()
+	_ = router.Run(":8888")
 }
 
 func authMiddleware(authService auth.Service, service users.Service) gin.HandlerFunc {
