@@ -8,6 +8,7 @@ import (
 	"funding-app/payment"
 	"funding-app/transaction"
 	"funding-app/users"
+	"github.com/gin-contrib/cors"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
@@ -31,20 +32,24 @@ func main() {
 	userService := users.NewService(userRepository)
 	authService := auth.NewService()
 	campaignService := campaign.NewService(campaignRepository)
-	paymentService := payment.NewService(transactionRepository, campaignRepository)
+	paymentService := payment.NewService()
 	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewUserCampaign(campaignService)
-	transactionHandler := handler.NewTransaction(transactionService, paymentService)
+	transactionHandler := handler.NewTransaction(transactionService)
 
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.Static("/avatar_images", "./images")
 	api := router.Group("/api/v1")
+
 	api.POST("/users", userHandler.RegisterUser)
 	api.POST("/sessions", userHandler.LoginUser)
 	api.POST("/email_checkers", userHandler.CheckEMailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
+	api.GET("/users/fetch", authMiddleware(authService, userService), userHandler.FetchUser)
+
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 	api.POST("/create_campaign", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
