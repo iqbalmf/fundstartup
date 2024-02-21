@@ -59,7 +59,7 @@ func main() {
 	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetTransactionUser)
 	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 	api.POST("/transactions/notification", transactionHandler.GetNotification)
-	_ = router.Run(":8888")
+	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
 func authMiddleware(authService auth.Service, service users.Service) gin.HandlerFunc {

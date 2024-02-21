@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"funding-app/helper"
 	"funding-app/users"
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
@@ -20,7 +21,7 @@ func NewService() *service {
 func (s *service) GetPaymentURL(transaction Transaction, user users.User) (string, error) {
 	// 1. Initiate Snap client
 	var sn = snap.Client{}
-	sn.New("SB-Mid-server-e7Nl5WC8JnmX04ioqKqW3PDf", midtrans.Sandbox)
+	sn.New(helper.GoDotEnvVariable("SECRET_KEY_MIDTRANS"), midtrans.Sandbox)
 
 	// 2. Initiate Snap request
 	snapReq := &snap.Request{

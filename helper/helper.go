@@ -1,6 +1,11 @@
 package helper
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
+	"log"
+	"os"
+)
 
 type Response struct {
 	Meta Meta        `json:"meta"`
@@ -31,4 +36,16 @@ func FormatValidationError(err error) []string {
 		errors = append(errors, fieldError.Error())
 	}
 	return errors
+}
+
+func GoDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
 }
