@@ -2,6 +2,7 @@ package handler
 
 import (
 	"funding-app/helper"
+	"funding-app/payment"
 	"funding-app/transaction"
 	"funding-app/users"
 	"github.com/gin-gonic/gin"
@@ -9,11 +10,12 @@ import (
 )
 
 type transactionHandler struct {
-	service transaction.Service
+	service        transaction.Service
+	paymentService payment.Service
 }
 
-func NewTransaction(service transaction.Service) *transactionHandler {
-	return &transactionHandler{service: service}
+func NewTransaction(service transaction.Service, paymentService payment.Service) *transactionHandler {
+	return &transactionHandler{service: service, paymentService: paymentService}
 }
 
 // parameter di uri
@@ -84,4 +86,22 @@ func (t *transactionHandler) CreateTransaction(c *gin.Context) {
 	}
 	response := helper.APIResponse("Success to create transaction", http.StatusOK, "error", transaction.FormatPaymentTransaction(newTransaction))
 	c.JSON(http.StatusOK, response)
+}
+
+func (t *transactionHandler) GetNotification(c *gin.Context) {
+	var input transaction.TransactionNotificationInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		response := helper.APIResponse("Failed to process notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	err = t.paymentService.ProcessPayment(input)
+	if err != nil {
+		response := helper.APIResponse("Failed to process notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	c.JSON(http.StatusOK, input)
+
 }
