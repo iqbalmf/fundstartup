@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"funding-app/helper"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -13,7 +14,7 @@ type jwtService struct {
 }
 
 // SECRET_KEY !
-var SECRET_KEY = []byte("FUNDSTARTUP_s3cr3T_k3Y")
+var SECRET_KEY = []byte(helper.GoDotEnvVariable("SECRET_KEY_JWT"))
 
 func NewService() *jwtService {
 	return &jwtService{}
