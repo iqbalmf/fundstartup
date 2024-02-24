@@ -2,3 +2,4 @@
 avatar_images
 campaign_images
 .env
+.DS_Store

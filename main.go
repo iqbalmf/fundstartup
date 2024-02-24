@@ -8,10 +8,13 @@ import (
 	"funding-app/payment"
 	"funding-app/transaction"
 	"funding-app/users"
+	webHandler "funding-app/web/handler"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,9 +42,17 @@ func main() {
 	campaignHandler := handler.NewUserCampaign(campaignService)
 	transactionHandler := handler.NewTransaction(transactionService)
 
+	userWebHandler := webHandler.NewUserHandler(userService)
+
 	router := gin.Default()
 	router.Use(cors.Default())
+
+	router.HTMLRender = loadTemplates("./web/templates")
+
 	router.Static("/avatar_images", "./images")
+	router.Static("/css", "./web/assets/css")
+	router.Static("/js", "./web/assets/js")
+	router.Static("/webfonts", "./web/assets/webfonts")
 	api := router.Group("/api/v1")
 
 	api.POST("/users", userHandler.RegisterUser)
@@ -59,6 +70,8 @@ func main() {
 	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetTransactionUser)
 	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 	api.POST("/transactions/notification", transactionHandler.GetNotification)
+
+	router.GET("/users", userWebHandler.Index)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
@@ -97,4 +110,27 @@ func authMiddleware(authService auth.Service, service users.Service) gin.Handler
 		}
 		c.Set("currentUser", user)
 	}
+}
+
+func loadTemplates(templatesDir string) multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+
+	layouts, err := filepath.Glob(templatesDir + "/layouts/*")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	includes, err := filepath.Glob(templatesDir + "/**/*")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// Generate our templates map from our layouts/ and includes/ directories
+	for _, include := range includes {
+		layoutCopy := make([]string, len(layouts))
+		copy(layoutCopy, layouts)
+		files := append(layoutCopy, include)
+		r.AddFromFiles(filepath.Base(include), files...)
+	}
+	return r
 }
