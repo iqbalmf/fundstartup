@@ -49,7 +49,8 @@ func main() {
 
 	router.HTMLRender = loadTemplates("./web/templates")
 
-	router.Static("/avatar_images", "./images")
+	router.Static("/avatar_images", "./avatar_images")
+	router.Static("/campaign_images", "./campaign_images")
 	router.Static("/css", "./web/assets/css")
 	router.Static("/js", "./web/assets/js")
 	router.Static("/webfonts", "./web/assets/webfonts")
@@ -60,7 +61,6 @@ func main() {
 	api.POST("/email_checkers", userHandler.CheckEMailAvailability)
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/users/fetch", authMiddleware(authService, userService), userHandler.FetchUser)
-
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
 	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 	api.POST("/create_campaign", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
@@ -72,6 +72,12 @@ func main() {
 	api.POST("/transactions/notification", transactionHandler.GetNotification)
 
 	router.GET("/users", userWebHandler.Index)
+	router.GET("/users/new", userWebHandler.NewUser)
+	router.POST("/users", userWebHandler.CreateUser)
+	router.GET("/users/edit/:id", userWebHandler.GetUserById)
+	router.POST("/users/update/:id", userWebHandler.UpdateUser)
+	router.GET("/users/avatar/:id", userWebHandler.UploadAvatar)
+	router.POST("/users/avatar/:id", userWebHandler.CreatAvatar)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
