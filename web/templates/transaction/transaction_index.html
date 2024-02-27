@@ -1,0 +1,33 @@
+{{ define "content" }}
+<h2 class="mb-4">List of Transaction</h2>
+<div class="card mb-4">
+    <div class="card-body">
+        <table class="table mb-0">
+            <thead class="thead-light">
+            <tr>
+                <th>Name Campaign</th>
+                <th>User</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{ range .transaction }}
+            <tr>
+                <td>{{ .Campaign.Name }}</td>
+                <td>{{ .User.Name }}</td>
+                <td>{{ .AmontFormatIDR }}</td>
+                {{if eq .Status "paid"}}
+                <td style="background-color: #b0e57c;">{{ .Status }}</td>
+                {{else}}
+                <td>{{ .Status }}</td>
+                {{end}}
+                <td>{{ .FormattedTime }}</td>
+            </tr>
+            {{ end }}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{ end }}

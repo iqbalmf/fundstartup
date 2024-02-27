@@ -8,6 +8,7 @@ type Repository interface {
 	GetTransactionByID(ID int) (Transaction, error)
 	SaveTransaction(transaction Transaction) (Transaction, error)
 	UpdateTransaction(transaction Transaction) (Transaction, error)
+	FindAllTransaction() ([]Transaction, error)
 }
 type repository struct {
 	db *gorm.DB
@@ -54,4 +55,14 @@ func (r *repository) UpdateTransaction(transaction Transaction) (Transaction, er
 		return transaction, err
 	}
 	return transaction, nil
+}
+
+func (r *repository) FindAllTransaction() ([]Transaction, error) {
+	var tran []Transaction
+	err := r.db.Preload("Campaign").Preload("User").Order("id desc").Find(&tran).Error
+	if err != nil {
+		return tran, err
+	}
+	return tran, nil
+
 }
