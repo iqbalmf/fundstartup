@@ -43,6 +43,7 @@ func main() {
 	transactionHandler := handler.NewTransaction(transactionService)
 
 	userWebHandler := webHandler.NewUserHandler(userService)
+	campaignWebHandler := webHandler.NewCampaignHandler(campaignService, userService)
 
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -78,6 +79,8 @@ func main() {
 	router.POST("/users/update/:id", userWebHandler.UpdateUser)
 	router.GET("/users/avatar/:id", userWebHandler.UploadAvatar)
 	router.POST("/users/avatar/:id", userWebHandler.CreatAvatar)
+	router.GET("/campaigns", campaignWebHandler.Index)
+	router.GET("/campaign/new", campaignWebHandler.NewCampaign)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
