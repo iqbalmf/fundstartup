@@ -9,6 +9,7 @@ import (
 	"funding-app/transaction"
 	"funding-app/users"
 	webHandler "funding-app/web/handler"
+	webHelper "funding-app/web/helper"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/golang-jwt/jwt/v5"
@@ -45,6 +46,7 @@ func main() {
 	userWebHandler := webHandler.NewUserHandler(userService)
 	campaignWebHandler := webHandler.NewCampaignHandler(campaignService, userService)
 	transactionWebHandler := webHandler.NewTransactionHandler(transactionService)
+	sessionWebHandler := webHandler.NewSessionHandler(userService)
 
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -73,22 +75,25 @@ func main() {
 	api.POST("/transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 	api.POST("/transactions/notification", transactionHandler.GetNotification)
 
-	router.GET("/users", userWebHandler.Index)
-	router.GET("/users/new", userWebHandler.NewUser)
-	router.POST("/users", userWebHandler.CreateUser)
-	router.GET("/users/edit/:id", userWebHandler.GetUserById)
-	router.POST("/users/update/:id", userWebHandler.UpdateUser)
-	router.GET("/users/avatar/:id", userWebHandler.UploadAvatar)
-	router.POST("/users/avatar/:id", userWebHandler.CreateAvatar)
-	router.GET("/campaigns", campaignWebHandler.Index)
-	router.GET("/campaign/new", campaignWebHandler.NewCampaign)
-	router.POST("/campaigns", campaignWebHandler.CreateNewCampaign)
-	router.GET("/campaign/images/:id", campaignWebHandler.CampaignNewImage)
-	router.POST("/campaign/images/:id", campaignWebHandler.CreateCampaignNewImage)
-	router.GET("/campaign/edit/:id", campaignWebHandler.GetCampaignById)
-	router.POST("/campaign/update/:id", campaignWebHandler.UpdateCampaign)
-	router.GET("/campaign/show/:id", campaignWebHandler.ShowCampaignDetail)
-	router.GET("/transactions", transactionWebHandler.Index)
+	router.GET("/users", authAdminMiddleware(), userWebHandler.Index)
+	router.GET("/users/new", authAdminMiddleware(), userWebHandler.NewUser)
+	router.POST("/users", authAdminMiddleware(), userWebHandler.CreateUser)
+	router.GET("/users/edit/:id", authAdminMiddleware(), userWebHandler.GetUserById)
+	router.POST("/users/update/:id", authAdminMiddleware(), userWebHandler.UpdateUser)
+	router.GET("/users/avatar/:id", authAdminMiddleware(), userWebHandler.UploadAvatar)
+	router.POST("/users/avatar/:id", authAdminMiddleware(), userWebHandler.CreateAvatar)
+	router.GET("/campaigns", authAdminMiddleware(), campaignWebHandler.Index)
+	router.GET("/campaign/new", authAdminMiddleware(), campaignWebHandler.NewCampaign)
+	router.POST("/campaigns", authAdminMiddleware(), campaignWebHandler.CreateNewCampaign)
+	router.GET("/campaign/images/:id", authAdminMiddleware(), campaignWebHandler.CampaignNewImage)
+	router.POST("/campaign/images/:id", authAdminMiddleware(), campaignWebHandler.CreateCampaignNewImage)
+	router.GET("/campaign/edit/:id", authAdminMiddleware(), campaignWebHandler.GetCampaignById)
+	router.POST("/campaign/update/:id", authAdminMiddleware(), campaignWebHandler.UpdateCampaign)
+	router.GET("/campaign/show/:id", authAdminMiddleware(), campaignWebHandler.ShowCampaignDetail)
+	router.GET("/transactions", authAdminMiddleware(), transactionWebHandler.Index)
+	router.GET("/login", sessionWebHandler.New)
+	router.POST("/session", sessionWebHandler.CreateSession)
+	router.GET("/logout", sessionWebHandler.Destroy)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
@@ -126,6 +131,16 @@ func authMiddleware(authService auth.Service, service users.Service) gin.Handler
 			return
 		}
 		c.Set("currentUser", user)
+	}
+}
+
+func authAdminMiddleware() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		session, _ := webHelper.CookieStore.Get(context.Request, "login-admin-session")
+		if session.Values["nameUser"] == nil {
+			context.Redirect(http.StatusFound, "/login")
+			return
+		}
 	}
 }
 
