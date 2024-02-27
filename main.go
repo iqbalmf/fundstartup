@@ -84,6 +84,9 @@ func main() {
 	router.POST("/campaigns", campaignWebHandler.CreateNewCampaign)
 	router.GET("/campaign/images/:id", campaignWebHandler.CampaignNewImage)
 	router.POST("/campaign/images/:id", campaignWebHandler.CreateCampaignNewImage)
+	router.GET("/campaign/edit/:id", campaignWebHandler.GetCampaignById)
+	router.POST("/campaign/update/:id", campaignWebHandler.UpdateCampaign)
+	router.GET("/campaign/show/:id", campaignWebHandler.ShowCampaignDetail)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 
