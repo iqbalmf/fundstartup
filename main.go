@@ -78,9 +78,12 @@ func main() {
 	router.GET("/users/edit/:id", userWebHandler.GetUserById)
 	router.POST("/users/update/:id", userWebHandler.UpdateUser)
 	router.GET("/users/avatar/:id", userWebHandler.UploadAvatar)
-	router.POST("/users/avatar/:id", userWebHandler.CreatAvatar)
+	router.POST("/users/avatar/:id", userWebHandler.CreateAvatar)
 	router.GET("/campaigns", campaignWebHandler.Index)
 	router.GET("/campaign/new", campaignWebHandler.NewCampaign)
+	router.POST("/campaigns", campaignWebHandler.CreateNewCampaign)
+	router.GET("/campaign/images/:id", campaignWebHandler.CampaignNewImage)
+	router.POST("/campaign/images/:id", campaignWebHandler.CreateCampaignNewImage)
 	_ = router.Run(helper.GoDotEnvVariable("PORT"))
 }
 

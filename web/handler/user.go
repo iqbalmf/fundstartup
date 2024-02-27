@@ -96,7 +96,7 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	c.HTML(http.StatusOK, "user_avatar.html", gin.H{"ID": id})
 }
 
-func (h *userHandler) CreatAvatar(c *gin.Context) {
+func (h *userHandler) CreateAvatar(c *gin.Context) {
 	idParam := c.Param("id")
 	id, _ := strconv.Atoi(idParam)
 
