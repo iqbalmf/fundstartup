@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"funding-app/users"
 	webHelper "funding-app/web/helper"
 	"github.com/gin-gonic/gin"
@@ -23,12 +24,18 @@ func (s *sessionhandler) CreateSession(c *gin.Context) {
 	var input users.LoginInput
 	err := c.ShouldBind(&input)
 	if err != nil {
-		c.Redirect(http.StatusFound, "/login")
+		input.Error = err
+		c.HTML(http.StatusForbidden, "session_new.html", input)
 		return
 	}
 	user, err := s.userService.LoginUser(input)
-	if err != nil || user.Role != "admin" {
-		c.Redirect(http.StatusFound, "/login")
+	if err != nil {
+		input.Error = err
+		c.HTML(http.StatusForbidden, "session_new.html", input)
+		return
+	} else if user.Role != "admin" {
+		input.Error = errors.New("you're not ADMIN!")
+		c.HTML(http.StatusForbidden, "session_new.html", input)
 		return
 	}
 
