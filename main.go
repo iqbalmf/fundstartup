@@ -24,7 +24,11 @@ import (
 )
 
 func main() {
-	dsn := "root:password@tcp(127.0.0.1:3306)/fundstartup?charset=utf8mb4&parseTime=True&loc=Local"
+	dbUname := helper.GoDotEnvVariable("DB_USERNAME")
+	dbPass := helper.GoDotEnvVariable("DB_PASSWORD")
+	dbHost := helper.GoDotEnvVariable("DB_HOST")
+	dbName := helper.GoDotEnvVariable("DB_NAME")
+	dsn := dbUname + ":" + dbPass + "@tcp(" + dbHost + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err.Error())
